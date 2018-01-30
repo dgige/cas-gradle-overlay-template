@@ -15,36 +15,26 @@ function help() {
 	echo "	clean: Clean Maven build directory"
 	echo "	package: Clean and build CAS war, also call copy"
 	echo "	run: Build and run cas.war via spring boot (java -jar target/cas.war)"
-	echo "	runalone: Build and run cas.war on its own (target/cas.war)"
 	echo "	debug: Run CAS.war and listen for Java debugger on port 5000"
-	echo "	bootrun: Run with maven spring boot plugin, doesn't work with multiple dependencies"
 	echo "	gencert: Create keystore with SSL certificate in location where CAS looks by default"
 	echo "	command: Run the CAS command line shell and pass commands"
 }
 
 function clean() {
-	./mvnw clean "$@"
+	./gradlew clean "$@"
 }
 
 function package() {
-	./mvnw clean package -T 5 "$@"
+	./gradlew clean war --parallel "$@"
 	copy
 }
 
-function bootrun() {
-	./mvnw clean package spring-boot:run -T 5 "$@"
-}
-
 function debug() {
-	package && java -Xdebug -Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=n -jar target/cas.war
+	./gradlew clean debug --parallel "$@"
 }
 
 function run() {
-	package && java -jar target/cas.war
-}
-
-function runalone() {
-	package && chmod +x target/cas.war && target/cas.war
+	./gradlew clean run --parallel "$@"
 }
 
 function gencert() {
@@ -110,18 +100,11 @@ case "$1" in
 	shift
     package "$@"
     ;;
-"bootrun")
-	shift
-    bootrun "$@"
-    ;;
 "debug")
     debug "$@"
     ;;
 "run")
     run "$@"
-    ;;
-"runalone")
-    runalone "$@"
     ;;
 "gencert")
     gencert "$@"
